@@ -1,21 +1,22 @@
 import numpy as np
 import gym
 import tensorflow as tf
-from terminado.tests.basic_test import DONE_TIMEOUT
 env = gym.make('CartPole-v0')
 env.reset()
 n_inputs = 4  # == env.observation_space.shape[0]
-n_hidden = 4  # it's a simple task, we don't need more than this
+n_hidden1 = 10 
+n_hidden2 = 10
 n_outputs = 1 # only outputs the probability of accelerating left
-initializer = tf.variance_scaling_initializer()
 learning_rate = 0.01
 
 
 X = tf.placeholder(tf.float32, shape=[None, n_inputs])
 y = tf.placeholder(tf.float32, shape=[None, n_outputs])
 
-hidden = tf.layers.dense(X, n_hidden, activation=tf.nn.elu, kernel_initializer=initializer)
-logits = tf.layers.dense(hidden, n_outputs)
+hidden1 = tf.layers.dense(X, n_hidden1, activation=tf.nn.relu, kernel_initializer=tf.glorot_normal_initializer())
+hidden2 = tf.layers.dense(hidden1, n_hidden2, activation=tf.nn.relu, kernel_initializer=tf.glorot_normal_initializer())
+
+logits = tf.layers.dense(hidden2, n_outputs)
 outputs = tf.nn.sigmoid(logits)
 p_left_and_right = tf.concat(axis=1, values=[outputs, 1 - outputs])
 action = tf.multinomial(tf.log(p_left_and_right), num_samples=1)
@@ -40,7 +41,7 @@ saver = tf.train.Saver()
 #             break
 # env.close()n_environments = 10
 
-n_environments = 10
+n_environments = 50
 envs = [gym.make("CartPole-v0") for _ in range(n_environments)]
 observations = [env.reset() for env in envs]
 
@@ -48,10 +49,10 @@ observations = [env.reset() for env in envs]
 #training parallel in 10 environments
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
-    for iteration in range(1):
-        print(iteration)
+    for iteration in range(200000):
         target_probas = np.array([([1.] if obs[2] < 0 else [0.]) for obs in observations]) # if angle<0 we want proba(left)=1., or else proba(left)=0.
-        #print(target_probas)
+        print(target_probas)
+        
         action_val, _ = sess.run([action, training_op], feed_dict={X: np.array(observations), y: target_probas})
         for env_index, env in enumerate(envs):
             obs, reward, done, info = env.step(action_val[env_index][0])
