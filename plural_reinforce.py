@@ -86,7 +86,6 @@ def simulate():
             
             if done:
                 print("episode over: ", episode, t)
-                
                 if t >199:
                     num_streaks +=1
                 else:
