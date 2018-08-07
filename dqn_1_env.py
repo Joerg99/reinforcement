@@ -25,7 +25,7 @@ cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=y, logits=logits)
 optimizer = tf.train.AdamOptimizer(learning_rate)
 training_op = optimizer.minimize(cross_entropy)
 
-saver = tf.train.Saver()
+#saver = tf.train.Saver()
 # with tf.Session() as sess:
 #     sess.run(tf.global_variables_initializer())
 #     obs = env.reset()
@@ -45,7 +45,6 @@ saver = tf.train.Saver()
 env = gym.make("CartPole-v0")
 
 
-#training parallel in 10 environments
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     observation = env.reset() 
